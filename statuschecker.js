@@ -1,58 +1,44 @@
-const address = "https://api.politicsandwar.com/graphql";
+const PW_URL = 'https://api.politicsandwar.com/graphql?api_key={apiKey}';
 
-const t1 = Date.now();
-let t2;
+window.onload = async function() {
+    try {
+        // Dummy API key with no scopes whatsoever; knock yourself out
+        const nationId = await fetchPnWData(`{me{nation{id}}}`, '81621d0936a381037743');
+        if(nationId == '298035') onSuccess();
+        else onFail();
 
-const max = 2000;
-let failed = false;
-
-let httpReq = (window.XMLHttpRequest)?new XMLHttpRequest():new ActiveXObject("Microsoft.XMLHTTP");
-if(httpReq == null) {
-    console.log("Error: XMLHttpRequest failed to initiate.");
-}
-httpReq.onreadystatechange = function() {
-    console.log("Hey handsome");
-    console.log(httpReq);
-
-    const failTimer = setTimeout(function() {
-                            failed = true;
-                            httpReq.abort();
-                            }, max);
-
-    if (httpReq.readyState == 4) {  //Completed loading
-        if (!failed && (httpReq.status == 200 || httpReq.status == 0)) {
-
-            clearTimeout(failTimer);
-
-            t2 = Date.now();
-
-            const timeTotal = (t2 - t1);
-            if(timeTotal > max) {
-                onFail();
-            } else {
-                onSuccess();
-            }
-
-        }
-        else {  //Otherwise, there was a problem while loading
-            console.log("Error " + httpReq.status + " has occurred.");
-            onFail();
-        }
+    } catch(e) {
+        console.log("Error retrieving data.");
+        onFail();
     }
 }
-try {
-    httpReq.open("GET", address, true);
-    httpReq.send(null);
-
-} catch(e) {
-    console.log("Error retrieving data.");
-    onFail();
-}
-
 
 function onSuccess() {
-    document.getElementById('status').innerHTML = "No"
+    document.getElementById('status').innerHTML = "No";
 }
 function onFail() {
-    document.getElementById('status').innerHTML = "Yes"
+    document.getElementById('status').innerHTML = "Yes";
+}
+
+async function fetchPnWData(query, apiKey) {
+    try {
+        const url = PW_URL.replace('{apiKey}', apiKey);
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                query: query
+            })
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const responseObject = await response.json();
+        return responseObject.data.me.nation.id;
+    } catch(e) {
+        console.log(e);
+        throw e; // Rethrow the error for higher-level handling
+    }
 }
