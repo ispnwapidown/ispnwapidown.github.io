@@ -3,7 +3,7 @@ const PW_URL = 'https://api.politicsandwar.com/graphql?api_key={apiKey}';
 window.onload = async function() {
     try {
         // Dummy API key with no scopes whatsoever; knock yourself out
-        const nationId = await fetchPnWData(`{me{nation{id}}}`, '81621d0936a381037743');
+        const nationId = await fetchPnWData(`{me{nation{id}}}`, 'Fuck Off');
         if(nationId == '298035') onSuccess();
         else onFail();
 
